@@ -1,16 +1,29 @@
-'use strict';
-
 const express = require('express');
-
-// Constants
-const PORT = 8080;
-const HOST = '0.0.0.0';
-
-// App
+const {exec} = require('child_process');
 const app = express();
+const port = 3000;
+const pug = require('pug');
+
+// Listen in on root
 app.get('/', (req, res) => {
-  res.send('Hello World');
+  const folder = req.query.folder;
+  if (folder) {
+    // Run the command with the parameter the user gives us
+    exec(`ls -l ${folder}`, (error, stdout, stderr) => {
+      let output = stdout;
+      if (error) {
+        // If there are any errors, show that
+        output = error; 
+      }
+      res.send(
+        pug.renderFile('./pages/index.pug', {output: output, folder: folder})
+      );
+    });
+  } else {
+    res.send(pug.renderFile('./pages/index.pug', {}));
+  }
 });
 
-app.listen(PORT, HOST);
-console.log(`Running on http://${HOST}:${PORT}`);
+app.listen(port, () => {
+  console.log(`Example app listening at http://localhost:${port}`);
+});
